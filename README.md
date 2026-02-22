@@ -1,6 +1,6 @@
 # TL LCD Linux
 
-`tllcd-linux` is a Rust service that replaces the Windows-only L-Connect runtime for Lian Li TL Wireless LCD fans. It handles the full USB+wireless handshake, DES header generation, and continuous streaming of videos or images to the LCD panels on Linux.
+`tl-lcd-linux` is a Rust service that replaces the Windows-only L-Connect runtime for Lian Li TL Wireless LCD fans. It handles the full USB+wireless handshake, DES header generation, and continuous streaming of videos or images to the LCD panels on Linux.
 
 ## Features
 
