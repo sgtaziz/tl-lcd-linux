@@ -1,0 +1,7 @@
+target/
+config.json
+temp
+*.old
+*.bak
+src.bak/
+tl-lcd-linux.service
