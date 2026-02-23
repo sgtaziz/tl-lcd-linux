@@ -59,8 +59,7 @@ impl ServiceManager {
         }
 
         self.load_config(true)?;
-        self.ensure_wireless()?;
-        let _ = self.wireless.send_rx_sequence();
+        self.try_wireless();
         self.start_fan_control();
 
         while self.running {
@@ -133,18 +132,20 @@ impl ServiceManager {
         self.fan_controller = Some(controller);
     }
 
-    fn ensure_wireless(&mut self) -> Result<()> {
-        loop {
-            match self.wireless.connect() {
-                Ok(()) => {
-                    self.wireless.start_polling()?;
-                    info!("Wireless links active");
-                    return Ok(());
+    /// Try to connect wireless TX/RX once. If no dongles found, skip gracefully.
+    fn try_wireless(&mut self) {
+        match self.wireless.connect() {
+            Ok(()) => {
+                match self.wireless.start_polling() {
+                    Ok(()) => {
+                        let _ = self.wireless.send_rx_sequence();
+                        info!("Wireless links active");
+                    }
+                    Err(err) => warn!("[wireless] polling start failed: {err}"),
                 }
-                Err(err) => {
-                    info!("[wireless] waiting for TX/RX devices: {err}");
-                    thread::sleep(Duration::from_secs(2));
-                }
+            }
+            Err(_) => {
+                debug!("[wireless] no TX/RX devices found, skipping wireless");
             }
         }
     }
@@ -155,7 +156,8 @@ impl ServiceManager {
         }
         warn!("Wireless soft-reset failed; reinitialising");
         self.wireless.stop();
-        self.ensure_wireless().is_ok()
+        self.try_wireless();
+        self.wireless.has_discovered_devices()
     }
 
     fn load_config(&mut self, force: bool) -> Result<bool> {
